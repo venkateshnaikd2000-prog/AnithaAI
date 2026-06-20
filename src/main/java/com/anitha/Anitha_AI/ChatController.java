@@ -9,6 +9,7 @@ public class ChatController {
 
     private final ChatSessionService chatSessionService;
     private final GeminiService geminiService;
+    private final OpenAIService openAIService;
     private final MemoryService memoryService;
     private final ProfileMemoryService profileMemoryService;
     private final RelationshipMemoryService relationshipMemoryService;
@@ -16,12 +17,14 @@ public class ChatController {
     public ChatController(
             ChatSessionService chatSessionService,
             GeminiService geminiService,
+            OpenAIService openAIService,
             MemoryService memoryService,
             ProfileMemoryService profileMemoryService,
             RelationshipMemoryService relationshipMemoryService
     ) {
         this.chatSessionService = chatSessionService;
         this.geminiService = geminiService;
+        this.openAIService = openAIService;
         this.memoryService = memoryService;
         this.profileMemoryService = profileMemoryService;
         this.relationshipMemoryService = relationshipMemoryService;
@@ -51,8 +54,7 @@ public class ChatController {
     @GetMapping("/ask")
     public String ask(
             @RequestParam String question,
-            @RequestParam(defaultValue = "false") boolean internet,
-            @RequestParam(defaultValue = "false") boolean autonomous,
+            @RequestParam(defaultValue = "auto") String brain,
             @RequestParam(required = false) String chatId
     ) {
         profileMemoryService.learnFromUser(question);
@@ -65,12 +67,27 @@ public class ChatController {
             answer = relationshipAnswer;
         } else {
             String fullPrompt =
+                    "You are Anitha AI.\n\n" +
                     "Profile memory:\n" + profileMemoryService.loadProfileMemory() +
                     "\n\nRelationship memory:\n" + relationshipMemoryService.loadRelationshipMemory() +
                     "\n\nRecent memory:\n" + memoryService.loadMemory() +
                     "\n\nUser question:\n" + question;
 
-            answer = geminiService.askGemini(fullPrompt);
+            if (brain.equalsIgnoreCase("openai")) {
+                answer = openAIService.askOpenAI(fullPrompt);
+            } else if (brain.equalsIgnoreCase("gemini")) {
+                answer = geminiService.askGemini(fullPrompt);
+            } else {
+                answer = geminiService.askGemini(fullPrompt);
+
+                if (
+                        answer.toLowerCase().contains("gemini brain failed") ||
+                        answer.toLowerCase().contains("gemini api key is missing") ||
+                        answer.toLowerCase().contains("valid response")
+                ) {
+                    answer = openAIService.askOpenAI(fullPrompt);
+                }
+            }
         }
 
         memoryService.saveMemory(question, answer);
