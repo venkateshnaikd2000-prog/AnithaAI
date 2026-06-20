@@ -1,38 +1,21 @@
 package com.anitha.Anitha_AI;
 
 import org.springframework.stereotype.Service;
-import java.nio.file.*;
 
 @Service
 public class ImageMemoryService {
 
-    private final String imageMemoryFile = "anitha-last-image.txt";
+    private String lastImage = "";
 
     public void saveLastImage(String imagePath) {
-        try {
-            Files.writeString(
-                    Paths.get(imageMemoryFile),
-                    imagePath,
-                    StandardOpenOption.CREATE,
-                    StandardOpenOption.TRUNCATE_EXISTING
-            );
-        } catch (Exception e) {
-            System.out.println("Image memory save failed: " + e.getMessage());
-        }
+        lastImage = imagePath;
     }
 
     public String getLastImage() {
-        try {
-            Path path = Paths.get(imageMemoryFile);
+        return lastImage;
+    }
 
-            if (!Files.exists(path)) {
-                return "";
-            }
-
-            return Files.readString(path);
-
-        } catch (Exception e) {
-            return "";
-        }
+    public void clearImageMemory() {
+        lastImage = "";
     }
 }

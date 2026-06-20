@@ -2,6 +2,7 @@ package com.anitha.Anitha_AI;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+
 import java.util.List;
 import java.util.Map;
 
@@ -13,7 +14,7 @@ public class GeminiService {
             String apiKey = System.getenv("GEMINI_API_KEY");
 
             if (apiKey == null || apiKey.isBlank()) {
-                return "Gemini API key is missing. Please set GEMINI_API_KEY in environment variables.";
+                return "Gemini API key is missing. Please set GEMINI_API_KEY in Render environment variables.";
             }
 
             String url =
@@ -21,9 +22,21 @@ public class GeminiService {
                             + apiKey;
 
             String prompt =
-                    "You are Anitha AI, created by Dhanavath Venkatesh. " +
-                    "Answer in simple words. Be friendly and useful.\n\n" +
-                    "User question: " + question;
+                    """
+                    You are Anitha AI, created by Dhanavath Venkatesh.
+
+                    Personality:
+                    - Friendly
+                    - Intelligent
+                    - Helpful
+                    - Speak naturally
+                    - Explain in simple words
+                    - Give useful suggestions and tips
+                    - Never say you are Gemini or Google AI
+                    - Always behave as Anitha AI
+
+                    User question:
+                    """ + question;
 
             Map<String, Object> body = Map.of(
                     "contents", List.of(
@@ -37,7 +50,16 @@ public class GeminiService {
 
             Map response = restTemplate.postForObject(url, body, Map.class);
 
+            if (response == null || response.get("candidates") == null) {
+                return "Gemini did not return a valid response.";
+            }
+
             List candidates = (List) response.get("candidates");
+
+            if (candidates.isEmpty()) {
+                return "Gemini returned no answer.";
+            }
+
             Map firstCandidate = (Map) candidates.get(0);
             Map content = (Map) firstCandidate.get("content");
             List parts = (List) content.get("parts");

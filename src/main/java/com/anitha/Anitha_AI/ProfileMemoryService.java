@@ -1,14 +1,17 @@
 package com.anitha.Anitha_AI;
 
 import org.springframework.stereotype.Service;
-import java.nio.file.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class ProfileMemoryService {
 
-    private final String profileFile = "anitha-profile.txt";
+    private final List<String> profileMemories = new ArrayList<>();
 
     public void learnFromUser(String userMessage) {
+
         String msg = userMessage.toLowerCase();
 
         if (
@@ -38,42 +41,26 @@ public class ProfileMemoryService {
     }
 
     public void saveProfileMemory(String memory) {
-        try {
-            String data =
-                    "Memory: " + memory + System.lineSeparator();
 
-            Files.write(
-                    Paths.get(profileFile),
-                    data.getBytes(),
-                    StandardOpenOption.CREATE,
-                    StandardOpenOption.APPEND
-            );
+        if (!profileMemories.contains(memory)) {
+            profileMemories.add(memory);
+        }
 
-        } catch (Exception e) {
-            System.out.println("Profile memory save failed: " + e.getMessage());
+        if (profileMemories.size() > 100) {
+            profileMemories.remove(0);
         }
     }
 
     public String loadProfileMemory() {
-        try {
-            Path path = Paths.get(profileFile);
 
-            if (!Files.exists(path)) {
-                return "";
-            }
-
-            return Files.readString(path);
-
-        } catch (Exception e) {
+        if (profileMemories.isEmpty()) {
             return "";
         }
+
+        return String.join("\n", profileMemories);
     }
 
     public void clearProfileMemory() {
-        try {
-            Files.deleteIfExists(Paths.get(profileFile));
-        } catch (Exception e) {
-            System.out.println("Profile memory clear failed: " + e.getMessage());
-        }
+        profileMemories.clear();
     }
 }

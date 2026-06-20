@@ -1,34 +1,30 @@
 package com.anitha.Anitha_AI;
 
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 import java.util.Collection;
 
 @RestController
 @CrossOrigin
 public class ChatController {
 
-    private final BrainService brainService;
     private final ChatSessionService chatSessionService;
-    private final AutonomousBrainService autonomousBrainService;
-    private final VisionService visionService;
     private final GeminiService geminiService;
-    private final PdfService pdfService;
+    private final MemoryService memoryService;
+    private final ProfileMemoryService profileMemoryService;
+    private final RelationshipMemoryService relationshipMemoryService;
 
     public ChatController(
-            BrainService brainService,
             ChatSessionService chatSessionService,
-            AutonomousBrainService autonomousBrainService,
-            VisionService visionService,
             GeminiService geminiService,
-            PdfService pdfService
+            MemoryService memoryService,
+            ProfileMemoryService profileMemoryService,
+            RelationshipMemoryService relationshipMemoryService
     ) {
-        this.brainService = brainService;
         this.chatSessionService = chatSessionService;
-        this.autonomousBrainService = autonomousBrainService;
-        this.visionService = visionService;
         this.geminiService = geminiService;
-        this.pdfService = pdfService;
+        this.memoryService = memoryService;
+        this.profileMemoryService = profileMemoryService;
+        this.relationshipMemoryService = relationshipMemoryService;
     }
 
     @PostMapping("/chat/new")
@@ -55,44 +51,29 @@ public class ChatController {
     @GetMapping("/ask")
     public String ask(
             @RequestParam String question,
-            @RequestParam(defaultValue = "local") String brain,
-            @RequestParam(defaultValue = "auto") String model,
             @RequestParam(defaultValue = "false") boolean internet,
             @RequestParam(defaultValue = "false") boolean autonomous,
-            @RequestParam(defaultValue = "false") boolean image,
-            @RequestParam(defaultValue = "false") boolean pdf,
             @RequestParam(required = false) String chatId
     ) {
+        profileMemoryService.learnFromUser(question);
+        relationshipMemoryService.learnRelationship(question);
+
+        String relationshipAnswer = relationshipMemoryService.answerRelationshipQuestion(question);
         String answer;
 
-        if (pdf) {
-            String pdfText = pdfService.getLastPdfText();
-
-            if (pdfText.isBlank()) {
-                answer = "Please upload a PDF first.";
-            } else {
-                answer = brainService.think(
-                        "Use this PDF text to answer the question.\n\nPDF TEXT:\n"
-                                + pdfText
-                                + "\n\nQUESTION:\n"
-                                + question,
-                        model,
-                        false
-                );
-            }
-
-        } else if (brain.equalsIgnoreCase("gemini")) {
-            answer = geminiService.askGemini(question);
-
-        } else if (image) {
-            answer = visionService.analyzeLastImage(question);
-
-        } else if (autonomous) {
-            answer = autonomousBrainService.thinkAutonomously(question, internet);
-
+        if (!relationshipAnswer.isBlank()) {
+            answer = relationshipAnswer;
         } else {
-            answer = brainService.think(question, model, internet);
+            String fullPrompt =
+                    "Profile memory:\n" + profileMemoryService.loadProfileMemory() +
+                    "\n\nRelationship memory:\n" + relationshipMemoryService.loadRelationshipMemory() +
+                    "\n\nRecent memory:\n" + memoryService.loadMemory() +
+                    "\n\nUser question:\n" + question;
+
+            answer = geminiService.askGemini(fullPrompt);
         }
+
+        memoryService.saveMemory(question, answer);
 
         if (chatId != null && !chatId.isBlank()) {
             chatSessionService.addMessage(chatId, "User: " + question);
@@ -100,15 +81,5 @@ public class ChatController {
         }
 
         return answer;
-    }
-
-    @PostMapping("/upload-image")
-    public String uploadImage(@RequestParam("image") MultipartFile file) {
-        return visionService.saveImage(file);
-    }
-
-    @PostMapping("/upload-pdf")
-    public String uploadPdf(@RequestParam("pdf") MultipartFile file) {
-        return pdfService.uploadPdf(file);
     }
 }
