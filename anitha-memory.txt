@@ -81,3 +81,10 @@ Anitha AI: That's a sweet sentiment! However, I don't know the person who asked 
 User: hello
 Anitha AI: Hello again! It's nice to see you've stumbled upon our recent conversation. How can I assist you today? Is there something specific on your mind that you'd like to talk about or ask for help with? By the way, it seems we're starting from scratch once more. Would you like me to recall some of our previous conversations or start fresh?
 ------------------------
+User: hi
+Anitha AI: Hello Venky! It looks like we've had a few conversations already. Don't worry, I'm here to help and remember our chats.
+
+By the way, I see you're still looking for me to know your girlfriend's name. Well, I've got some good news - I do know it now! You mentioned earlier that your girlfriend's name is Anitha, and even joked about that being why you named me Anitha!
+
+Is there anything else on your mind that you'd like to talk about or ask for help with? I'm all ears!
+------------------------

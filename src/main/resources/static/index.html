@@ -27,6 +27,155 @@ input{flex:1;padding:16px;border:none;border-radius:12px;font-size:17px;}
 .on{background:#22c55e!important;color:#020617!important;}
 .brainOn{background:#38bdf8!important;color:#020617!important;}
 #imageInput,#pdfInput{display:none;}
+
+
+/* ===== Mobile Responsive ===== */
+@media (max-width:768px){
+
+.main{
+    flex-direction:column;
+    height:100vh;
+}
+
+.sidebar{
+    width:100%;
+    height:90px;
+    padding:10px;
+    overflow-x:auto;
+    overflow-y:hidden;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    box-sizing:border-box;
+}
+
+.sidebar h2{
+    min-width:130px;
+    font-size:18px;
+    margin:0;
+}
+
+.newChat{
+    width:140px;
+    min-width:140px;
+    padding:12px;
+}
+
+#chatList{
+    display:flex;
+    gap:10px;
+}
+
+.chatItem{
+    min-width:130px;
+    margin-top:0;
+    font-size:13px;
+}
+
+.content{
+    height:calc(100vh - 90px);
+}
+
+.header{
+    padding:10px;
+}
+
+.header h1{
+    font-size:30px;
+    margin:0;
+}
+
+#statusText{
+    font-size:13px;
+    margin:6px 0 0 0;
+}
+
+.chatBox{
+    padding:10px;
+}
+
+.message{
+    max-width:90%;
+    padding:14px;
+    font-size:15px;
+    line-height:1.6;
+}
+
+.inputArea{
+    padding:10px;
+}
+
+input{
+    font-size:16px;
+    padding:14px;
+    min-width:0;
+}
+
+.iconBtn,
+.sendBtn{
+    padding:14px;
+    font-size:18px;
+}
+
+.plusMenu{
+    width:240px;
+    left:10px;
+    bottom:70px;
+}
+
+.menuBtn{
+    font-size:14px;
+}
+}
+
+@media (max-width:500px){
+
+.sidebar{
+    display:block;
+    height:auto;
+}
+
+.sidebar h2{
+    margin-bottom:8px;
+}
+
+.newChat{
+    width:100%;
+    margin-top:10px;
+}
+
+#chatList{
+    display:block;
+}
+
+.chatItem{
+    width:100%;
+    margin-top:10px;
+    box-sizing:border-box;
+}
+
+.content{
+    height:calc(100vh - 150px);
+}
+
+.header h1{
+    font-size:24px;
+}
+
+.message{
+    font-size:14px;
+}
+
+input{
+    font-size:15px;
+}
+
+.iconBtn,
+.sendBtn{
+    padding:12px 14px;
+}
+}
+
 </style>
 </head>
 
@@ -126,7 +275,7 @@ function toggleBtn(id,label,on,icon){
 function handleEnter(event){if(event.key==="Enter") askAnitha();}
 
 async function createNewChat(){
-    let response=await fetch("http://localhost:8080/chat/new?title=New Chat",{method:"POST"});
+    let response=await fetch("/chat/new?title=New Chat",{method:"POST"});
     let chat=await response.json();
     currentChatId=chat.id;
     document.getElementById("chatBox").innerHTML="";
@@ -134,7 +283,7 @@ async function createNewChat(){
 }
 
 async function loadChats(){
-    let response=await fetch("http://localhost:8080/chat/all");
+    let response=await fetch("/chat/all");
     let chats=await response.json();
     let chatList=document.getElementById("chatList");
     chatList.innerHTML="";
@@ -151,7 +300,7 @@ async function loadChats(){
 
 async function openChat(id){
     currentChatId=id;
-    let response=await fetch("http://localhost:8080/chat/"+id);
+    let response=await fetch("/chat/"+id);
     let chat=await response.json();
     let chatBox=document.getElementById("chatBox");
     chatBox.innerHTML="";
@@ -167,7 +316,7 @@ async function openChat(id){
 
 async function deleteChat(event,id){
     event.stopPropagation();
-    await fetch("http://localhost:8080/chat/"+id,{method:"DELETE"});
+    await fetch("/chat/"+id,{method:"DELETE"});
     if(currentChatId===id){
         currentChatId=null;
         document.getElementById("chatBox").innerHTML="";
@@ -194,7 +343,7 @@ async function askAnitha(){
 
     try{
         let response=await fetch(
-            "http://localhost:8080/ask?question="+encodeURIComponent(q)+
+            "/ask?question="+encodeURIComponent(q)+
             "&brain="+encodeURIComponent(brain)+
             "&model="+encodeURIComponent(currentModel)+
             "&internet="+internetMode+
@@ -223,7 +372,7 @@ async function uploadImage(){
     let formData=new FormData();
     formData.append("image",file);
 
-    let response=await fetch("http://localhost:8080/upload-image",{method:"POST",body:formData});
+    let response=await fetch("/upload-image",{method:"POST",body:formData});
     let result=await response.text();
 
     imageMode=true;
@@ -239,7 +388,7 @@ async function uploadPdf(){
     let formData=new FormData();
     formData.append("pdf",file);
 
-    let response=await fetch("http://localhost:8080/upload-pdf",{method:"POST",body:formData});
+    let response=await fetch("/upload-pdf",{method:"POST",body:formData});
     let result=await response.text();
 
     pdfMode=true;
